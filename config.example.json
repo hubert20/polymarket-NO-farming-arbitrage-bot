@@ -1,0 +1,27 @@
+{
+  "connection": {
+    "host": "https://clob.polymarket.com",
+    "chain_id": 137,
+    "signature_type": 2
+  },
+  "strategies": {
+    "nothing_happens": {
+      "market_refresh_interval_sec": 600,
+      "price_poll_interval_sec": 60,
+      "position_sync_interval_sec": 60,
+      "order_dispatch_interval_sec": 60,
+      "cash_pct_per_trade": 0.02,
+      "min_trade_amount": 5,
+      "fixed_trade_amount": 0,
+      "max_entry_price": 0.65,
+      "allowed_slippage": 0.3,
+      "request_concurrency": 4,
+      "buy_retry_count": 3,
+      "buy_retry_base_delay_sec": 1,
+      "max_backoff_sec": 900,
+      "max_new_positions": -1,
+      "shutdown_on_max_new_positions": false,
+      "redeemer_interval_sec": 1800
+    }
+  }
+}

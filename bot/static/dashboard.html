@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard</title>
+<style>
+:root {
+  --bg: #f4f0e8;
+  --surface: rgba(255, 252, 245, 0.6);
+  --surface-strong: rgba(255, 255, 255, 0.82);
+  --border: rgba(70, 54, 32, 0.14);
+  --text: #332918;
+  --muted: #6c6252;
+  --accent: #a34f1d;
+  --accent-soft: rgba(163, 79, 29, 0.12);
+  --green: #147049;
+  --red: #aa2d2d;
+  --shadow: 0 18px 50px rgba(69, 47, 18, 0.12);
+}
+
+[data-theme="dark"] {
+  --bg: #141311;
+  --surface: rgba(31, 28, 24, 0.6);
+  --surface-strong: rgba(40, 35, 29, 0.8);
+  --border: rgba(255, 234, 205, 0.09);
+  --text: #f3e9d6;
+  --muted: #b2a796;
+  --accent: #e79d54;
+  --accent-soft: rgba(231, 157, 84, 0.14);
+  --green: #52d19c;
+  --red: #ff7a7a;
+  --shadow: 0 18px 60px rgba(0, 0, 0, 0.35);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  position: relative;
+  color: var(--text);
+  font-family: system-ui, -apple-system, sans-serif;
+  background: var(--bg) url("/nothingeverhappens.svg") center center / 100% 100% no-repeat fixed;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at top left, rgba(231, 157, 84, 0.16), transparent 30%),
+    radial-gradient(circle at top right, rgba(82, 209, 156, 0.12), transparent 26%),
+    linear-gradient(180deg, rgba(255, 248, 236, 0.2), rgba(14, 10, 7, 0.28));
+}
+
+.shell {
+  position: relative;
+  z-index: 1;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 24px 18px 40px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.title {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.eyebrow {
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.title h1 {
+  margin: 0;
+  font-size: clamp(1.8rem, 2.2vw, 2.6rem);
+  line-height: 1;
+}
+
+.subtitle {
+  color: var(--muted);
+  font-size: 0.95rem;
+  max-width: 640px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.socket {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 9px 14px;
+  font-family: ui-monospace, monospace;
+  font-size: 0.78rem;
+  background: var(--surface);
+}
+
+.socket.connected { color: var(--green); }
+.socket.disconnected { color: var(--red); }
+
+.theme-toggle {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 999px;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  display: inline-grid;
+  place-items: center;
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.summary-card,
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(10px);
+}
+
+.summary-card {
+  padding: 14px 16px;
+}
+
+.summary-card .label {
+  color: var(--muted);
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+
+.summary-card .value {
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.summary-card .meta {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.summary-card .positive { color: var(--green); }
+.summary-card .negative { color: var(--red); }
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(360px, 0.9fr);
+  gap: 18px;
+}
+
+.control-panel {
+  margin-bottom: 18px;
+}
+
+.control-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+}
+
+.control-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 220px;
+}
+
+.control-field span {
+  color: var(--muted);
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+.control-input {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-strong);
+  color: var(--text);
+  padding: 11px 12px;
+  font: inherit;
+}
+
+.control-input:disabled,
+.action-button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.control-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.action-button {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-strong);
+  color: var(--text);
+  padding: 11px 14px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.panel {
+  padding: 16px;
+}
+
+.panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.panel-title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.panel-note {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.table-wrap {
+  overflow: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  text-align: left;
+  color: var(--muted);
+  font-size: 0.73rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+td {
+  padding: 11px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.9rem;
+  vertical-align: top;
+}
+
+tbody tr:hover {
+  background: var(--accent-soft);
+}
+
+.market-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.market-link:hover {
+  color: var(--accent);
+}
+
+.market-name {
+  font-weight: 700;
+  display: block;
+  line-height: 1.35;
+}
+
+.market-slug {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-family: ui-monospace, monospace;
+  margin-top: 4px;
+}
+
+.outcome-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.mono {
+  font-family: ui-monospace, monospace;
+}
+
+.positive {
+  color: var(--green);
+}
+
+.negative {
+  color: var(--red);
+}
+
+.trade-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 72vh;
+  overflow: auto;
+}
+
+.trade-item {
+  border: 1px solid var(--border);
+  background: var(--surface-strong);
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.trade-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.trade-action {
+  font-weight: 700;
+}
+
+.trade-meta,
+.trade-detail {
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.trade-detail strong {
+  color: var(--text);
+}
+
+.empty {
+  color: var(--muted);
+  font-style: italic;
+  padding: 18px 4px 6px;
+}
+
+th[data-sort] {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+th[data-sort]:hover {
+  color: var(--accent);
+}
+
+th[data-sort]::after {
+  content: "";
+  display: inline-block;
+  margin-left: 4px;
+  width: 0;
+}
+
+th[data-sort].sort-asc::after {
+  content: "\25B2";
+}
+
+th[data-sort].sort-desc::after {
+  content: "\25BC";
+}
+
+@media (max-width: 1080px) {
+  .summary-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .shell {
+    padding: 16px 12px 24px;
+  }
+
+  .header {
+    flex-direction: column;
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .control-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="header">
+    <div class="title">
+      <h1>Nothing Ever Happens</h1>
+    </div>
+    <div class="header-actions">
+      <div id="socket" class="socket disconnected">socket: disconnected</div>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme" title="Switch theme">🌙</button>
+    </div>
+  </div>
+
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="label">Monitored</div>
+      <div class="value" id="monitored">--</div>
+      <div class="meta">filtered standalone markets</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">Eligible</div>
+      <div class="value" id="eligible">--</div>
+      <div class="meta">no current position</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">In Range</div>
+      <div class="value" id="in-range">--</div>
+      <div class="meta">last known live ask at or below cap</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">Open Positions</div>
+      <div class="value" id="open-count">0</div>
+      <div class="meta" id="last-position-sync">waiting for sync</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">Cash</div>
+      <div class="value" id="cash-balance">--</div>
+      <div class="meta" id="last-price-cycle">waiting for cycle</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">Portfolio</div>
+      <div class="value" id="portfolio-value">--</div>
+      <div class="meta" id="portfolio-breakdown">cash -- | positions --</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">Session PnL</div>
+      <div class="value" id="session-pnl">--</div>
+      <div class="meta" id="session-balance">balance --</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">Last Error</div>
+      <div class="value mono" id="last-error">none</div>
+      <div class="meta" id="last-market-refresh">market refresh --</div>
+    </div>
+  </div>
+
+  <section class="panel control-panel">
+    <div class="panel-head">
+      <h2 class="panel-title">Position Cap</h2>
+      <div class="panel-note" id="target-status">env configured</div>
+    </div>
+    <div class="trade-meta" id="target-meta">Open -- | Pending -- | Remaining -- | Target -- | Opened --</div>
+  </section>
+
+  <div class="layout">
+    <section class="panel">
+      <div class="panel-head">
+        <h2 class="panel-title">Open Positions</h2>
+        <div class="panel-note" id="positions-note">Waiting for portfolio state</div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th data-sort="title">Market</th>
+              <th data-sort="outcome">Side</th>
+              <th data-sort="size">Size</th>
+              <th data-sort="avg_price">Avg Paid</th>
+              <th data-sort="current_price">Current</th>
+              <th data-sort="current_value">Market Value</th>
+              <th data-sort="pnl_usd">PnL</th>
+              <th data-sort="pot_win">Pot. Win</th>
+              <th data-sort="eta_seconds">ETA</th>
+            </tr>
+          </thead>
+          <tbody id="positions-body">
+            <tr><td colspan="9" class="empty">No open positions</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2 class="panel-title">Recent Trades</h2>
+        <div class="panel-note">trade ledger tail</div>
+      </div>
+      <div id="trades-body" class="trade-list">
+        <div class="empty">No trades yet</div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+const socketEl = document.getElementById("socket");
+const tradesBody = document.getElementById("trades-body");
+const positionsBody = document.getElementById("positions-body");
+const themeToggle = document.getElementById("theme-toggle");
+const tradeItems = [];
+let latestPortfolio = null;
+let sortColumn = "eta_seconds";
+let sortDirection = "asc";
+
+function fmtUsd(value, digits = 2) {
+  if (value == null || Number.isNaN(Number(value))) return "--";
+  return "$" + Number(value).toLocaleString("en-US", {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  });
+}
+
+function fmtPct(value) {
+  if (value == null || Number.isNaN(Number(value))) return "--";
+  const num = Number(value);
+  const sign = num >= 0 ? "+" : "";
+  return sign + num.toFixed(2) + "%";
+}
+
+function fmtShares(value) {
+  if (value == null || Number.isNaN(Number(value))) return "--";
+  return Number(value).toLocaleString("en-US", { maximumFractionDigits: 4 });
+}
+
+function fmtTime(epochSec) {
+  if (!epochSec) return "--";
+  const d = new Date(epochSec * 1000);
+  return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+}
+
+function fmtEta(seconds) {
+  const remaining = Math.max(0, Math.floor(Number(seconds || 0)));
+  const days = Math.floor(remaining / 86400);
+  const hours = Math.floor((remaining % 86400) / 3600);
+  const minutes = Math.floor((remaining % 3600) / 60);
+  if (days > 0) return days + "d " + hours + "h";
+  if (hours > 0) return hours + "h " + minutes + "m";
+  return minutes + "m";
+}
+
+function fmtAgo(tsSec) {
+  if (!tsSec) return "--";
+  const delta = Math.max(0, Math.floor(Date.now() / 1000 - tsSec));
+  if (delta < 60) return delta + "s ago";
+  if (delta < 3600) return Math.floor(delta / 60) + "m ago";
+  return Math.floor(delta / 3600) + "h ago";
+}
+
+function fmtTarget(value) {
+  return value == null ? "Unlimited" : String(value);
+}
+
+function sortValue(position, col) {
+  if (col === "title") return (position.title || position.slug || "").toLowerCase();
+  if (col === "outcome") return (position.outcome || "").toLowerCase();
+  if (col === "pot_win") return Number(position.size || 0) - Number(position.initial_value || 0);
+  return Number(position[col] || 0);
+}
+
+function sortPositions(positions) {
+  return positions.slice().sort((a, b) => {
+    const va = sortValue(a, sortColumn);
+    const vb = sortValue(b, sortColumn);
+    let cmp = 0;
+    if (typeof va === "string") cmp = va.localeCompare(vb);
+    else cmp = va - vb;
+    return sortDirection === "desc" ? -cmp : cmp;
+  });
+}
+
+function updateSortIndicators() {
+  document.querySelectorAll("th[data-sort]").forEach(th => {
+    th.classList.remove("sort-asc", "sort-desc");
+    if (th.dataset.sort === sortColumn) {
+      th.classList.add(sortDirection === "asc" ? "sort-asc" : "sort-desc");
+    }
+  });
+}
+
+function renderTargetControls(msg) {
+  const openCount = (msg.positions || []).length;
+  const pendingCount = Number(msg.pending_entry_count || 0);
+  const remaining = msg.remaining_position_capacity;
+  const target = msg.target_open_positions;
+  const openedThisRun = Number(msg.opened_this_run || 0);
+
+  document.getElementById("target-meta").textContent =
+    "Open " + openCount +
+    " | Pending " + pendingCount +
+    " | Remaining " + (remaining == null ? "unlimited" : String(remaining)) +
+    " | Target " + fmtTarget(target) +
+    " | Opened " + openedThisRun;
+}
+
+function renderPortfolio(msg) {
+  latestPortfolio = msg;
+  const positions = sortPositions(msg.positions || []);
+  const cashBalance = Number(msg.cash_balance || 0);
+  const positionsValue = positions.reduce((sum, position) => sum + Number(position.current_value || 0), 0);
+  const portfolioValue = (msg.cash_balance == null ? null : cashBalance + positionsValue);
+
+  document.getElementById("monitored").textContent = String(msg.monitored_markets ?? "--");
+  document.getElementById("eligible").textContent = String(msg.eligible_markets ?? "--");
+  document.getElementById("in-range").textContent = String(msg.in_range_markets ?? "--");
+  document.getElementById("open-count").textContent = String(positions.length);
+  document.getElementById("cash-balance").textContent = fmtUsd(msg.cash_balance);
+  document.getElementById("portfolio-value").textContent = fmtUsd(portfolioValue);
+  document.getElementById("portfolio-breakdown").textContent =
+    "cash " + fmtUsd(msg.cash_balance) + " | positions " + fmtUsd(positionsValue);
+  document.getElementById("last-error").textContent = msg.last_error ? String(msg.last_error) : "none";
+  document.getElementById("last-market-refresh").textContent =
+    "market refresh " + fmtAgo(msg.last_market_refresh_ts);
+  document.getElementById("last-position-sync").textContent =
+    "position sync " + fmtAgo(msg.last_position_sync_ts);
+  document.getElementById("last-price-cycle").textContent =
+    "price cycle " + fmtAgo(msg.last_price_cycle_ts);
+  document.getElementById("positions-note").textContent =
+    positions.length
+      ? "sorted by " + (document.querySelector("th[data-sort='" + sortColumn + "']")?.textContent || sortColumn)
+      : "No open positions right now";
+  updateSortIndicators();
+  renderTargetControls(msg);
+
+  positionsBody.innerHTML = "";
+  if (positions.length === 0) {
+    positionsBody.innerHTML = '<tr><td colspan="9" class="empty">No open positions</td></tr>';
+    return;
+  }
+
+  for (const position of positions) {
+    const tr = document.createElement("tr");
+
+    const marketCell = document.createElement("td");
+    const link = document.createElement("a");
+    link.className = "market-link";
+    link.href = "https://polymarket.com/event/" + position.slug;
+    link.target = "_blank";
+    link.rel = "noreferrer";
+    link.innerHTML =
+      '<span class="market-name"></span><span class="market-slug"></span>';
+    link.querySelector(".market-name").textContent = position.title || position.slug;
+    link.querySelector(".market-slug").textContent = position.slug;
+    marketCell.appendChild(link);
+
+    const sideCell = document.createElement("td");
+    sideCell.innerHTML = '<span class="outcome-pill"></span>';
+    sideCell.querySelector(".outcome-pill").textContent = position.outcome || "--";
+
+    const sizeCell = document.createElement("td");
+    sizeCell.className = "mono";
+    sizeCell.textContent = fmtShares(position.size);
+
+    const avgCell = document.createElement("td");
+    avgCell.className = "mono";
+    avgCell.textContent = fmtUsd(position.avg_price, 4);
+
+    const curCell = document.createElement("td");
+    curCell.className = "mono";
+    curCell.textContent = fmtUsd(position.current_price, 4);
+
+    const valueCell = document.createElement("td");
+    valueCell.className = "mono";
+    valueCell.textContent = fmtUsd(position.current_value);
+
+    const pnlCell = document.createElement("td");
+    pnlCell.innerHTML = '<div></div><div class="trade-meta"></div>';
+    pnlCell.firstChild.textContent = fmtUsd(position.pnl_usd);
+    pnlCell.lastChild.textContent = fmtPct(position.pnl_pct);
+    pnlCell.firstChild.className = Number(position.pnl_usd || 0) >= 0 ? "positive mono" : "negative mono";
+    pnlCell.lastChild.className = Number(position.pnl_pct || 0) >= 0 ? "trade-meta positive" : "trade-meta negative";
+
+    const potWinCell = document.createElement("td");
+    const potWin = Number(position.size || 0) - Number(position.initial_value || 0);
+    potWinCell.innerHTML = '<div></div><div class="trade-meta"></div>';
+    potWinCell.firstChild.textContent = fmtUsd(potWin);
+    potWinCell.firstChild.className = potWin >= 0 ? "positive mono" : "negative mono";
+    const potWinPct = Number(position.initial_value || 0) > 0
+      ? (potWin / Number(position.initial_value) * 100)
+      : 0;
+    potWinCell.lastChild.textContent = fmtPct(potWinPct);
+    potWinCell.lastChild.className = potWinPct >= 0 ? "trade-meta positive" : "trade-meta negative";
+
+    const etaCell = document.createElement("td");
+    etaCell.innerHTML = '<div class="mono"></div><div class="trade-meta"></div>';
+    etaCell.firstChild.textContent = fmtEta(position.eta_seconds);
+    etaCell.lastChild.textContent = position.end_date || "--";
+
+    tr.append(marketCell, sideCell, sizeCell, avgCell, curCell, valueCell, pnlCell, potWinCell, etaCell);
+    positionsBody.appendChild(tr);
+  }
+}
+
+function tradeStatus(msg) {
+  if (msg.error) return msg.error;
+  if (msg.order_status) return msg.order_status;
+  return "--";
+}
+
+function addTrade(msg) {
+  if (tradesBody.querySelector(".empty")) tradesBody.innerHTML = "";
+
+  const div = document.createElement("div");
+  div.className = "trade-item";
+
+  const top = document.createElement("div");
+  top.className = "trade-top";
+  const action = document.createElement("div");
+  const actionText = String(msg.action || "--");
+  action.className = "trade-action " + (
+    actionText === "buy" ? "positive" :
+    actionText === "error" ? "negative" :
+    ""
+  );
+  action.textContent = actionText;
+  const timeEl = document.createElement("div");
+  timeEl.className = "trade-meta mono";
+  timeEl.textContent = fmtTime(msg.ts);
+  top.append(action, timeEl);
+
+  const meta = document.createElement("div");
+  meta.className = "trade-meta";
+  meta.textContent = (msg.side || "--") + " | " + (msg.market_slug || "--");
+
+  const detail = document.createElement("div");
+  detail.className = "trade-detail";
+  detail.innerHTML =
+    "<strong>Amount:</strong> " + fmtUsd(msg.amount) +
+    "  <strong>Price:</strong> " + fmtUsd(msg.reference_price, 4) +
+    "  <strong>Status:</strong> " + tradeStatus(msg);
+
+  div.append(top, meta, detail);
+  tradesBody.prepend(div);
+  tradeItems.unshift(div);
+
+  while (tradeItems.length > 120) {
+    const item = tradeItems.pop();
+    if (item) item.remove();
+  }
+}
+
+function renderSessionPnl(msg) {
+  const pnlEl = document.getElementById("session-pnl");
+  const balEl = document.getElementById("session-balance");
+  const pnl = Number(msg.pnl_usd || 0);
+  const sign = pnl >= 0 ? "+" : "";
+  pnlEl.textContent = sign + fmtUsd(pnl).replace("$", "$");
+  pnlEl.className = "value " + (pnl >= 0 ? "positive" : "negative");
+  balEl.textContent = "balance " + fmtUsd(msg.current_balance);
+}
+
+function handleMessage(msg) {
+  switch (msg.type) {
+    case "portfolio":
+      renderPortfolio(msg);
+      break;
+    case "bot_trade":
+      addTrade(msg);
+      break;
+    case "session_pnl":
+      renderSessionPnl(msg);
+      break;
+    case "control_ack":
+      if (!msg.ok) {
+        document.getElementById("target-status").textContent = "Update failed: " + (msg.error || "unknown_error");
+      }
+      break;
+  }
+}
+
+function syncThemeToggle() {
+  const root = document.documentElement;
+  const dark = root.dataset.theme === "dark";
+  themeToggle.textContent = dark ? "☀️" : "🌙";
+  themeToggle.title = dark ? "Switch to light theme" : "Switch to dark theme";
+  themeToggle.setAttribute("aria-label", themeToggle.title);
+}
+
+let ws;
+let reconnectDelay = 1000;
+
+function connect() {
+  const proto = location.protocol === "https:" ? "wss:" : "ws:";
+  ws = new WebSocket(proto + "//" + location.host + "/ws");
+
+  ws.onopen = () => {
+    socketEl.textContent = "socket: connected";
+    socketEl.className = "socket connected";
+    reconnectDelay = 1000;
+  };
+
+  ws.onclose = () => {
+    socketEl.textContent = "socket: disconnected";
+    socketEl.className = "socket disconnected";
+    setTimeout(connect, reconnectDelay);
+    reconnectDelay = Math.min(reconnectDelay * 1.5, 10000);
+  };
+
+  ws.onerror = () => ws.close();
+
+  ws.onmessage = (event) => {
+    try {
+      handleMessage(JSON.parse(event.data));
+    } catch (_) {
+    }
+  };
+}
+
+themeToggle.addEventListener("click", () => {
+  const root = document.documentElement;
+  root.dataset.theme = root.dataset.theme === "dark" ? "light" : "dark";
+  syncThemeToggle();
+});
+
+document.querySelectorAll("th[data-sort]").forEach(th => {
+  th.addEventListener("click", () => {
+    const col = th.dataset.sort;
+    if (sortColumn === col) {
+      sortDirection = sortDirection === "asc" ? "desc" : "asc";
+    } else {
+      sortColumn = col;
+      sortDirection = (col === "title" || col === "outcome") ? "asc" : "desc";
+    }
+    if (latestPortfolio) renderPortfolio(latestPortfolio);
+  });
+});
+
+syncThemeToggle();
+updateSortIndicators();
+connect();
+</script>
+</body>
+</html>
