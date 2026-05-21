@@ -1,0 +1,56 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# Test / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Type checkers / linters
+.mypy_cache/
+.ruff_cache/
+.pyre/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Local env files
+.env
+.env.*
+!.env.example
+
+# Local config
+config.json
+
+# Vendored repos (reference only)
+vendor/
+
+# Generated artifacts
+report.html
+logs/
+data/
+results/
+artifacts/
+trades.jsonl
+markets.json
+resolved_markets.json
+*_export.csv
+*_detail.csv
+reconstruct_pnl_actual.csv
+*.parquet
+.claude/
