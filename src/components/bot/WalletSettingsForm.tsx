@@ -152,7 +152,7 @@ export default function WalletSettingsForm() {
         </Grid>
 
         <Typography variant="subtitle2" color="textSecondary">
-          Wallet (sent to backend only — stored in backend/.env)
+          Wallet (stored in project root `.env`)
         </Typography>
         <Grid container spacing={2}>
           <Grid size={12}>

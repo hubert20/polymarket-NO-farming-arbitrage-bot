@@ -88,12 +88,11 @@ Change everything from **Settings** in the dashboard — no code edits required.
 
 ```
 ./
+├── .env              Single env file — backend + dashboard (Settings page writes here)
 ├── backend/          Python bot + REST/WebSocket API (:8080)
 │   ├── bot/
-│   ├── config.json
-│   └── .env          Wallet & mode (also editable from Settings)
+│   └── config.json   Strategy tuning (also editable from Settings)
 ├── src/              Next.js dashboard (:3000)
-├── .env.local        Dashboard → API URLs
 ├── public/no-farmimg-dashboard.gif
 ├── README.md
 └── README.zh-CN.md
@@ -112,27 +111,21 @@ pip install -r backend/requirements.txt
 
 ### 2. Configure environment
 
-**Dashboard** — create `.env.local` in the project root:
+Copy the example env and strategy config:
 
 ```bash
-cp .env.example .env.local
+cp .env.example .env
+cp backend/config.example.json backend/config.json
 ```
 
+**Single root `.env`** — used by both the Python bot and the Next.js dashboard:
+
 ```env
+# Dashboard
 NEXT_PUBLIC_BOT_API_URL=http://localhost:8080
 NEXT_PUBLIC_BOT_WS_URL=ws://localhost:8080/ws
-```
 
-**Backend** — copy config and env:
-
-```bash
-cp backend/config.example.json backend/config.json
-cp backend/.env.example backend/.env
-```
-
-Default **demo mode** (no real orders, live market data, configurable paper balance):
-
-```env
+# Bot mode (defaults below = demo, no real orders)
 DEMO_MODE=true
 DEMO_BALANCE=7535
 DEMO_SESSION_PNL=732
@@ -140,7 +133,7 @@ BOT_MODE=paper
 DRY_RUN=true
 ```
 
-Adjust `DEMO_BALANCE` / `DEMO_SESSION_PNL` in `backend/.env`, or use **Settings → Demo mode** in the UI.
+Adjust `DEMO_BALANCE` / `DEMO_SESSION_PNL` in `.env`, or use **Settings → Demo mode** in the UI.
 
 ### 3. Start the bot (terminal 1)
 
@@ -167,7 +160,7 @@ Go to **Settings** to set:
 - Private key & funder address  
 - Strategy: max entry price, % per trade, min size, slippage  
 
-Saved to `backend/.env` and `backend/config.json` — no manual file editing required.
+Saved to root `.env` and `backend/config.json` — no manual file editing required.
 
 **Live trading:** Settings → Mode **live**, enable live trading, turn **dry run** off, and provide `PRIVATE_KEY`, `DATABASE_URL`, and `POLYGON_RPC_URL`.
 

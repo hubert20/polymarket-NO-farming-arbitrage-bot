@@ -13,9 +13,10 @@ import time
 from datetime import datetime, timezone
 
 import requests
-from dotenv import load_dotenv
 
-load_dotenv()
+from bot.env_loader import bootstrap_env
+
+bootstrap_env()
 
 DATA_API_BASE = "https://data-api.polymarket.com"
 

@@ -29,8 +29,7 @@ def test_public_snapshot_has_strategy_keys(tmp_path, monkeypatch):
     import bot.settings_manager as sm
 
     manager = SettingsManager()
-    monkeypatch.setattr(sm, "backend_dir", lambda: tmp_path)
-    monkeypatch.setattr(sm, "_env_path", lambda: env_file)
+    monkeypatch.setattr(sm, "env_path", lambda: env_file)
     monkeypatch.setattr(sm, "_config_path", lambda: config)
 
     snap = manager.public_snapshot()

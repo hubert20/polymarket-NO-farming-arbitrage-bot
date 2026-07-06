@@ -14,16 +14,21 @@ from bot.config import (
     _load_config_file,
     _validate_nothing_happens_config,
 )
-from bot.env_loader import backend_dir
+from bot.env_loader import env_path
 
 _ENV_KEYS = (
     "BOT_MODE",
     "LIVE_TRADING_ENABLED",
     "DRY_RUN",
+    "DEMO_MODE",
+    "DEMO_BALANCE",
+    "DEMO_SESSION_PNL",
     "PRIVATE_KEY",
     "FUNDER_ADDRESS",
     "DATABASE_URL",
     "POLYGON_RPC_URL",
+    "API_PORT",
+    "CORS_ORIGINS",
 )
 
 _STRATEGY_KEYS = (
@@ -35,15 +40,67 @@ _STRATEGY_KEYS = (
     "max_new_positions",
 )
 
+_ENV_DEFAULTS: dict[str, str] = {
+    "NEXT_PUBLIC_BOT_API_URL": "http://localhost:8080",
+    "NEXT_PUBLIC_BOT_WS_URL": "ws://localhost:8080/ws",
+    "API_PORT": "8080",
+    "CORS_ORIGINS": "http://localhost:3000,http://127.0.0.1:3000,http://[::1]:3000",
+    "BOT_MODE": "paper",
+    "LIVE_TRADING_ENABLED": "false",
+    "DRY_RUN": "true",
+    "DEMO_MODE": "true",
+    "DEMO_BALANCE": "7535",
+    "DEMO_SESSION_PNL": "732",
+    "PRIVATE_KEY": "",
+    "FUNDER_ADDRESS": "",
+    "DATABASE_URL": "",
+    "POLYGON_RPC_URL": "",
+}
 
-def _env_path() -> Path:
-    return backend_dir() / ".env"
+_ENV_SECTIONS: list[tuple[str, tuple[str, ...]]] = [
+    (
+        "# Dashboard (Next.js)",
+        ("NEXT_PUBLIC_BOT_API_URL", "NEXT_PUBLIC_BOT_WS_URL"),
+    ),
+    (
+        "# Bot API",
+        ("API_PORT", "CORS_ORIGINS"),
+    ),
+    (
+        "# Mode",
+        (
+            "BOT_MODE",
+            "LIVE_TRADING_ENABLED",
+            "DRY_RUN",
+            "DEMO_MODE",
+            "DEMO_BALANCE",
+            "DEMO_SESSION_PNL",
+        ),
+    ),
+    (
+        "# Wallet (live trading)",
+        ("PRIVATE_KEY", "FUNDER_ADDRESS", "DATABASE_URL", "POLYGON_RPC_URL"),
+    ),
+]
 
 
 def _config_path() -> Path:
     from bot.config import _resolve_config_path
 
     return _resolve_config_path()
+
+
+def _parse_env_file(path: Path) -> dict[str, str]:
+    if not path.exists():
+        return {}
+    values: dict[str, str] = {}
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        values[key.strip()] = value.strip()
+    return values
 
 
 def _parse_bool(value: Any, default: bool) -> bool:
@@ -63,7 +120,7 @@ def _mask_secret(value: str | None) -> str:
 
 
 class SettingsManager:
-    """Thread-safe settings store backed by backend/.env and config.json."""
+    """Thread-safe settings store backed by root `.env` and backend/config.json."""
 
     def __init__(self) -> None:
         self._lock = threading.Lock()
@@ -176,33 +233,37 @@ class SettingsManager:
             }
 
     def _write_env(self, updates: dict[str, str]) -> None:
-        path = _env_path()
-        existing: dict[str, str] = {}
-        if path.exists():
-            for line in path.read_text(encoding="utf-8").splitlines():
-                line = line.strip()
-                if not line or line.startswith("#") or "=" not in line:
-                    continue
-                key, _, value = line.partition("=")
-                existing[key.strip()] = value.strip()
-
+        path = env_path()
+        existing = _parse_env_file(path)
         existing.update(updates)
+        for key, value in _ENV_DEFAULTS.items():
+            existing.setdefault(key, value)
+
         lines = [
-            "# Wallet and mode — managed via dashboard Settings",
-            f"BOT_MODE={existing.get('BOT_MODE', 'paper')}",
-            f"LIVE_TRADING_ENABLED={existing.get('LIVE_TRADING_ENABLED', 'false')}",
-            f"DRY_RUN={existing.get('DRY_RUN', 'true')}",
-            f"PRIVATE_KEY={existing.get('PRIVATE_KEY', '')}",
-            f"FUNDER_ADDRESS={existing.get('FUNDER_ADDRESS', '')}",
-            f"DATABASE_URL={existing.get('DATABASE_URL', '')}",
-            f"POLYGON_RPC_URL={existing.get('POLYGON_RPC_URL', '')}",
-            f"DEMO_MODE={existing.get('DEMO_MODE', os.getenv('DEMO_MODE', 'true'))}",
-            f"DEMO_BALANCE={existing.get('DEMO_BALANCE', os.getenv('DEMO_BALANCE', '7535'))}",
-            f"DEMO_SESSION_PNL={existing.get('DEMO_SESSION_PNL', os.getenv('DEMO_SESSION_PNL', '732'))}",
-            f"API_PORT={existing.get('API_PORT', os.getenv('API_PORT', '8080'))}",
-            f"CORS_ORIGINS={existing.get('CORS_ORIGINS', os.getenv('CORS_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000'))}",
+            "# Polymarket NO Farming Bot — single root .env (backend + dashboard)",
+            "# Wallet and mode — also editable from dashboard Settings",
+            "",
         ]
-        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        written: set[str] = set()
+        for header, keys in _ENV_SECTIONS:
+            section_keys = [key for key in keys if key in existing]
+            if not section_keys:
+                continue
+            lines.append(header)
+            for key in section_keys:
+                lines.append(f"{key}={existing[key]}")
+                written.add(key)
+            lines.append("")
+
+        extras = sorted(key for key in existing if key not in written)
+        if extras:
+            lines.append("# Other")
+            for key in extras:
+                lines.append(f"{key}={existing[key]}")
+            lines.append("")
+
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
 
     def _write_config(self, cfg: dict[str, Any]) -> None:
         path = _config_path()

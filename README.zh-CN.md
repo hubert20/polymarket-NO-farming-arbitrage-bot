@@ -26,9 +26,8 @@
 ```bash
 npm install
 pip install -r backend/requirements.txt
-cp .env.example .env.local
+cp .env.example .env
 cp backend/config.example.json backend/config.json
-cp backend/.env.example backend/.env
 ```
 
 终端 1：`cd backend && python -m bot.main`  

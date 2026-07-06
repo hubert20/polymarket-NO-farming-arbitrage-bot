@@ -29,7 +29,7 @@ htmlcov/
 .idea/
 .DS_Store
 
-# Local env files
+# Local env lives at project root (see ../.env.example)
 .env
 .env.*
 !.env.example
