@@ -4,7 +4,7 @@
 
 Trade the same structural edge used by successful Polymarket NO farmers: crowds overpay for unlikely **YES** outcomes; reality resolves **NO** far more often than the price implies.
 
-> **Disclaimer:** For educational and entertainment purposes only. Not financial advice. You can lose money. Trade at your own risk.
+Real traders use this playbook too — see [**@filthybera**](https://polymarket.com/@filthybera) (https://polymarket.com/@filthybera) for a live example; this bot automates the same NO-farming strategy on your machine.
 
 ---
 
@@ -69,16 +69,6 @@ The bot does **not** chase YES at 12¢. It looks for NO entries at **≤ 65¢** 
 | **Live mode** | Off | Turn on when you add a wallet and want real trades |
 
 Change everything from **Settings** in the dashboard — no code edits required.
-
----
-
-### Learn from a real trader
-
-This style of systematic NO farming is used in production by profitable Polymarket traders. Study how they pick markets and size positions:
-
-**Profile:** https://polymarket.com/@filthybera  
-
-This bot runs the same *type* of playbook — automated, configurable, and self-hosted on your machine.
 
 ---
 
@@ -213,3 +203,9 @@ If this bot saves you time or makes you money, consider buying me a coffee:
 ---
 
 中文文档：[README.zh-CN.md](./README.zh-CN.md)
+
+---
+
+## Disclaimer
+
+For educational and entertainment purposes only. Not financial advice. You can lose money. Trade at your own risk.
