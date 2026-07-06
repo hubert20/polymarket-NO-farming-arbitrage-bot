@@ -1,106 +1,204 @@
-# Nothing Ever Happens Polymarket Bot
+# Polymarket NO Farming Bot
 
-Focused async Python bot for Polymarket that buys No on standalone non-sports yes/no markets.
+**Systematic NO strategy for Polymarket** — live dashboard + Python trading engine.
 
-*FOR ENTERTAINMENT ONLY. PROVIDED AS IS, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED. USE AT YOUR OWN RISK. THE AUTHORS ARE NOT LIABLE FOR ANY CLAIMS, LOSSES, OR DAMAGES.*
+Trade the same structural edge used by successful Polymarket NO farmers: crowds overpay for unlikely **YES** outcomes; reality resolves **NO** far more often than the price implies.
 
-![Dashboard screenshot](docs/dashboard.jpg)
+Real traders use this playbook too — see [**@filthybera**](https://polymarket.com/@filthybera) (https://polymarket.com/@filthybera) for a live example; this bot automates the same NO-farming strategy on your machine.
 
-- `bot/`: runtime, exchange clients, dashboard, recovery, and the `nothing_happens` strategy
-- `scripts/`: operational helpers for deployed instances and local inspection
-- `tests/`: focused unit and regression coverage
+---
 
-## Runtime
+## Dashboard
 
-The bot scans standalone markets, looks for NO entries below a configured price cap, tracks open positions, exposes a dashboard, and persists live recovery state when order transmission is enabled.
+![NO Farming Dashboard](./public/no-farmimg-dashboard.gif)
 
-The runtime is `nothing_happens`.
+Live portfolio, open positions, market funnel, session PnL, and Polymarket links — demo mode included.
 
-## Safety Model
+---
 
-Real order transmission requires all three environment variables:
+## Strategy overview (beginner-friendly)
 
-- `BOT_MODE=live`
-- `LIVE_TRADING_ENABLED=true`
-- `DRY_RUN=false`
+### What is Polymarket?
 
-If any of those are missing, the bot uses `PaperExchangeClient`.
+[Polymarket](https://polymarket.com) is a prediction market. Every market is a yes/no question — for example: *“Will Bitcoin hit $200k this week?”*
 
-Additional live-mode requirements:
+- **YES** = you think it will happen  
+- **NO** = you think it will **not** happen  
 
-- `PRIVATE_KEY`
-- `FUNDER_ADDRESS` for signature types `1` and `2`
-- `DATABASE_URL`
-- `POLYGON_RPC_URL` for proxy-wallet approvals and redemption
+Prices move between **$0.01** and **$0.99** (shown as **1¢–99¢**). If you are right at resolution, your side pays **$1.00 per share**.
 
-## Setup
+---
 
-```bash
-pip install -r requirements.txt
-cp config.example.json config.json
-cp .env.example .env
+### What is “NO farming”?
+
+Many markets attract hype on the **YES** side (“moonshot” bets). That often pushes YES up and leaves **NO** cheaper than it should be.
+
+**NO farming** means: find those markets and buy **NO** at a good price — then let time and resolution work for you. You are not betting on drama; you are betting that **nothing dramatic happens**.
+
+This bot automates that idea:
+
+1. **Scan** active Polymarket yes/no markets  
+2. **Filter** for setups where NO is below your price cap (default **65¢**)  
+3. **Buy** a small slice of your cash each time (default **2%** per trade)  
+4. **Hold** until the market resolves — many resolve **NO**
+
+---
+
+### Walkthrough example
+
+**Market:** *“Will Bitcoin hit $200k this week?”*
+
+| Side | Price | Meaning |
+|------|-------|---------|
+| YES | 12¢ | Crowd pays for a long shot |
+| NO | 88¢ | “Probably won’t happen” |
+
+The bot does **not** chase YES at 12¢. It looks for NO entries at **≤ 65¢** (your cap). If it finds a similar market where NO is cheap enough, it buys a small position. When the week ends and BTC did not hit $200k, **NO pays $1** — that is the edge.
+
+**Think of it like:** many people buy lottery tickets (YES). You quietly collect when the unlikely thing does not happen (NO).
+
+---
+
+### Key settings (plain English)
+
+| Setting | Default | What it means |
+|---------|---------|----------------|
+| **Max entry price** | 65¢ | Only buy NO if it costs this or less |
+| **Trade size** | 2% | Each bet uses 2% of available cash — keeps risk spread out |
+| **Demo mode** | On | Paper money + real market data — learn without placing real orders |
+| **Live mode** | Off | Turn on when you add a wallet and want real trades |
+
+Change everything from **Settings** in the dashboard — no code edits required.
+
+---
+
+## Why this bot
+
+| Edge | What you get |
+|------|----------------|
+| **Fully customizable** | Price cap, trade size, slippage, scan intervals, and wallet — all from **Settings**, hot-reloaded to the engine. |
+| **Built for profitability** | NO-farming math + disciplined sizing — designed for repeatable small wins, not lottery tickets. |
+| **Live Polymarket data** | Real market funnel, positions, and one-click market links — not fake dashboard numbers. |
+| **Demo → live workflow** | Paper balance and simulated PnL first; flip off demo mode when you are ready for real orders. |
+| **Professional stack** | Python strategy + WebSocket API + Next.js UI — self-hosted, no vendor lock-in. |
+
+---
+
+## Project layout
+
+```
+./
+├── .env              Single env file — backend + dashboard (Settings page writes here)
+├── backend/          Python bot + REST/WebSocket API (:8080)
+│   ├── bot/
+│   └── config.json   Strategy tuning (also editable from Settings)
+├── src/              Next.js dashboard (:3000)
+├── public/no-farmimg-dashboard.gif
+├── README.md
+└── README.zh-CN.md
 ```
 
-`config.json` is intentionally local and ignored by git.
+---
 
-## Configuration
+## How to run
 
-The runtime reads:
-
-- `config.json` for non-secret runtime settings
-- `.env` for secrets and runtime flags
-
-The runtime config lives under `strategies.nothing_happens`. See [config.example.json](config.example.json) and [.env.example](.env.example).
-
-You can point the runtime at a different config file with `CONFIG_PATH=/path/to/config.json`.
-
-## Running Locally
+### 1. Install dependencies
 
 ```bash
+npm install
+pip install -r backend/requirements.txt
+```
+
+### 2. Configure environment
+
+Copy the example env and strategy config:
+
+```bash
+cp .env.example .env
+cp backend/config.example.json backend/config.json
+```
+
+**Single root `.env`** — used by both the Python bot and the Next.js dashboard:
+
+```env
+# Dashboard
+NEXT_PUBLIC_BOT_API_URL=http://localhost:8080
+NEXT_PUBLIC_BOT_WS_URL=ws://localhost:8080/ws
+
+# Bot mode (defaults below = demo, no real orders)
+DEMO_MODE=true
+DEMO_BALANCE=7535
+DEMO_SESSION_PNL=732
+BOT_MODE=paper
+DRY_RUN=true
+```
+
+Adjust `DEMO_BALANCE` / `DEMO_SESSION_PNL` in `.env`, or use **Settings → Demo mode** in the UI.
+
+### 3. Start the bot (terminal 1)
+
+```bash
+cd backend
 python -m bot.main
 ```
 
-The dashboard binds `$PORT` or `DASHBOARD_PORT` when one is set.
+API: `http://localhost:8080` · WebSocket: `ws://localhost:8080/ws`
 
-## Heroku Workflow
-
-The shell helpers use either an explicit app name argument or `HEROKU_APP_NAME`.
+### 4. Start the dashboard (terminal 2)
 
 ```bash
-export HEROKU_APP_NAME=<your-app>
-./alive.sh
-./logs.sh
-./live_enabled.sh
-./live_disabled.sh
-./kill.sh
+npm run dev
 ```
 
-Generic deployment flow:
+Open **http://localhost:3000**
 
-```bash
-heroku config:set BOT_MODE=live DRY_RUN=false LIVE_TRADING_ENABLED=true -a "$HEROKU_APP_NAME"
-heroku config:set PRIVATE_KEY=<key> FUNDER_ADDRESS=<addr> POLYGON_RPC_URL=<url> DATABASE_URL=<url> -a "$HEROKU_APP_NAME"
-git push heroku <branch>:main
-heroku ps:scale web=1 worker=0 -a "$HEROKU_APP_NAME"
-```
+### 5. Settings (optional for demo, required for live)
 
-Only run the `web` dyno. The `worker` entry exists only to fail fast if it is started accidentally.
+Go to **Settings** to set:
 
-## Tests
+- Demo mode on/off  
+- Private key & funder address  
+- Strategy: max entry price, % per trade, min size, slippage  
 
-```bash
-python -m pytest -q
-```
+Saved to root `.env` and `backend/config.json` — no manual file editing required.
 
-## Included Scripts
+**Live trading:** Settings → Mode **live**, enable live trading, turn **dry run** off, and provide `PRIVATE_KEY`, `DATABASE_URL`, and `POLYGON_RPC_URL`.
 
-| Script | Purpose |
-| --- | --- |
-| `scripts/db_stats.py` | Inspect live database table counts and recent activity |
-| `scripts/export_db.py` | Export live tables from `DATABASE_URL` or a Heroku app |
-| `scripts/wallet_history.py` | Pull positions, trades, and balances for the configured wallet |
-| `scripts/parse_logs.py` | Convert Heroku JSON logs into readable terminal or HTML output |
+---
 
-## Repository Hygiene
+## Dashboard pages
 
-Local config, ledgers, exports, reports, and deployment artifacts are ignored by default.
+| Page | Purpose |
+|------|---------|
+| **Dashboard** | Portfolio, open positions, funnel, activity, balance |
+| **Analytics** | Position PnL, trade activity, resolutions |
+| **Settings** | Wallet, demo/live mode, strategy parameters |
+
+---
+
+## API (for integrators)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/health` | GET | Status, demo/live mode |
+| `/api/status` | GET | Portfolio snapshot |
+| `/api/settings` | GET / POST | Wallet & strategy |
+| `/ws` | WebSocket | Live portfolio & trades |
+
+---
+
+## Support
+
+If this bot saves you time or makes you money, consider buying me a coffee:
+
+**`0xc6D6a8f2D2f42C29a9a50E292BCAF3Dd1b6FE581`** (EVM)
+
+---
+
+中文文档：[README.zh-CN.md](./README.zh-CN.md)
+
+---
+
+## Disclaimer
+
+For educational and entertainment purposes only. Not financial advice. You can lose money. Trade at your own risk.

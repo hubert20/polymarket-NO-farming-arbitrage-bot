@@ -1,56 +1,37 @@
-# Python bytecode
-__pycache__/
-*.py[cod]
-*$py.class
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# Virtual environments
-.venv/
-venv/
-env/
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
 
-# Distribution / packaging
-build/
-dist/
-*.egg-info/
+# testing
+/coverage
 
-# Test / coverage
-.pytest_cache/
-.coverage
-.coverage.*
-htmlcov/
+# next.js
+/.next/
+/out/
 
-# Type checkers / linters
-.mypy_cache/
-.ruff_cache/
-.pyre/
+# production
+/build
 
-# IDE / OS
-.vscode/
-.idea/
+# misc
 .DS_Store
+*.pem
 
-# Local env files
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files
 .env
-.env.*
+.env*.local
 !.env.example
 
-# Local config
-config.json
+# vercel
+.vercel
 
-# Vendored repos (reference only)
-vendor/
-
-# Generated artifacts
-report.html
-logs/
-data/
-results/
-artifacts/
-trades.jsonl
-markets.json
-resolved_markets.json
-*_export.csv
-*_detail.csv
-reconstruct_pnl_actual.csv
-*.parquet
-.claude/
+# typescript
+*.tsbuildinfo
+next-env.d.ts
