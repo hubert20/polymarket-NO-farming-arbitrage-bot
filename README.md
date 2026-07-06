@@ -16,16 +16,69 @@ Live portfolio, open positions, market funnel, session PnL, and Polymarket links
 
 ---
 
-## Strategy in 30 seconds
+## Strategy overview (beginner-friendly)
 
-1. Scan active Polymarket yes/no markets.
-2. Buy **NO** when price is below your cap (default **65¢**).
-3. Size each entry as a small % of cash (default **2%**).
-4. Let time and resolution do the work — small edges, repeated.
+### What is Polymarket?
 
-**Example:** *“Will Bitcoin hit $200k this week?”* — YES at 12¢, NO at 88¢. The crowd chases YES; you buy NO at ≤65¢ and collect when nothing happens.
+[Polymarket](https://polymarket.com) is a prediction market. Every market is a yes/no question — for example: *“Will Bitcoin hit $200k this week?”*
 
-**In the wild:** This style of systematic NO farming is used by profitable Polymarket traders such as [**@filthybera**](https://polymarket.com/@filthybera) — same playbook, automated and configurable on your machine.
+- **YES** = you think it will happen  
+- **NO** = you think it will **not** happen  
+
+Prices move between **$0.01** and **$0.99** (shown as **1¢–99¢**). If you are right at resolution, your side pays **$1.00 per share**.
+
+---
+
+### What is “NO farming”?
+
+Many markets attract hype on the **YES** side (“moonshot” bets). That often pushes YES up and leaves **NO** cheaper than it should be.
+
+**NO farming** means: find those markets and buy **NO** at a good price — then let time and resolution work for you. You are not betting on drama; you are betting that **nothing dramatic happens**.
+
+This bot automates that idea:
+
+1. **Scan** active Polymarket yes/no markets  
+2. **Filter** for setups where NO is below your price cap (default **65¢**)  
+3. **Buy** a small slice of your cash each time (default **2%** per trade)  
+4. **Hold** until the market resolves — many resolve **NO**
+
+---
+
+### Walkthrough example
+
+**Market:** *“Will Bitcoin hit $200k this week?”*
+
+| Side | Price | Meaning |
+|------|-------|---------|
+| YES | 12¢ | Crowd pays for a long shot |
+| NO | 88¢ | “Probably won’t happen” |
+
+The bot does **not** chase YES at 12¢. It looks for NO entries at **≤ 65¢** (your cap). If it finds a similar market where NO is cheap enough, it buys a small position. When the week ends and BTC did not hit $200k, **NO pays $1** — that is the edge.
+
+**Think of it like:** many people buy lottery tickets (YES). You quietly collect when the unlikely thing does not happen (NO).
+
+---
+
+### Key settings (plain English)
+
+| Setting | Default | What it means |
+|---------|---------|----------------|
+| **Max entry price** | 65¢ | Only buy NO if it costs this or less |
+| **Trade size** | 2% | Each bet uses 2% of available cash — keeps risk spread out |
+| **Demo mode** | On | Paper money + real market data — learn without placing real orders |
+| **Live mode** | Off | Turn on when you add a wallet and want real trades |
+
+Change everything from **Settings** in the dashboard — no code edits required.
+
+---
+
+### Learn from a real trader
+
+This style of systematic NO farming is used in production by profitable Polymarket traders. Study how they pick markets and size positions:
+
+**Profile:** https://polymarket.com/@filthybera  
+
+This bot runs the same *type* of playbook — automated, configurable, and self-hosted on your machine.
 
 ---
 
