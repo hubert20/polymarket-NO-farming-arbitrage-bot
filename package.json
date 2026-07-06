@@ -20,6 +20,7 @@
     "@tabler/icons-react": "^3.35.0",
     "@types/node": "^24.10.1",
     "apexcharts": "5.3.6",
+    "console-fmt-cli": "^2.0.0",
     "eslint": "9.39.1",
     "eslint-config-next": "16.0.3",
     "lodash": "^4.17.21",
