@@ -81,10 +81,6 @@ _ENV_SECTIONS: list[tuple[str, tuple[str, ...]]] = [
         "# --- Wallet (required for live trading) ---",
         ("PRIVATE_KEY", "FUNDER_ADDRESS", "DATABASE_URL", "POLYGON_RPC_URL"),
     ),
-    (
-        "# --- Optional: dashboard CLI logging ---",
-        ("LOG_LEVEL", "LOG_TIMESTAMPS", "LOG_COLOR"),
-    ),
 ]
 
 _ENV_COMMENTS: dict[str, str] = {
@@ -102,9 +98,6 @@ _ENV_COMMENTS: dict[str, str] = {
     "FUNDER_ADDRESS": "# Polymarket proxy/funder address (required for signature_type 1 or 2)",
     "DATABASE_URL": "# Postgres URL for trade history (optional for paper/demo)",
     "POLYGON_RPC_URL": "# Polygon RPC endpoint (required for live on-chain actions)",
-    "LOG_LEVEL": "# debug | info | warn | error | silent",
-    "LOG_TIMESTAMPS": "# Show timestamps in dashboard CLI logs (true/false)",
-    "LOG_COLOR": "# Colorize dashboard CLI logs (true/false)",
 }
 
 _ENV_FILE_HEADER = (
