@@ -59,15 +59,15 @@ _ENV_DEFAULTS: dict[str, str] = {
 
 _ENV_SECTIONS: list[tuple[str, tuple[str, ...]]] = [
     (
-        "# Dashboard (Next.js)",
+        "# --- Dashboard (Next.js) ---",
         ("NEXT_PUBLIC_BOT_API_URL", "NEXT_PUBLIC_BOT_WS_URL"),
     ),
     (
-        "# Bot API",
+        "# --- Bot API ---",
         ("API_PORT", "CORS_ORIGINS"),
     ),
     (
-        "# Mode",
+        "# --- Trading mode ---",
         (
             "BOT_MODE",
             "LIVE_TRADING_ENABLED",
@@ -78,10 +78,43 @@ _ENV_SECTIONS: list[tuple[str, tuple[str, ...]]] = [
         ),
     ),
     (
-        "# Wallet (live trading)",
+        "# --- Wallet (required for live trading) ---",
         ("PRIVATE_KEY", "FUNDER_ADDRESS", "DATABASE_URL", "POLYGON_RPC_URL"),
     ),
+    (
+        "# --- Optional: dashboard CLI logging ---",
+        ("LOG_LEVEL", "LOG_TIMESTAMPS", "LOG_COLOR"),
+    ),
 ]
+
+_ENV_COMMENTS: dict[str, str] = {
+    "NEXT_PUBLIC_BOT_API_URL": "# URL where the UI calls the bot REST API (change if bot runs elsewhere)",
+    "NEXT_PUBLIC_BOT_WS_URL": "# WebSocket URL for live portfolio/trades on the dashboard",
+    "API_PORT": "# Port the Python bot listens on (default 8080)",
+    "CORS_ORIGINS": "# Allowed dashboard origins, comma-separated (add your domain for production)",
+    "BOT_MODE": "# paper = simulated orders | live = real Polymarket orders (requires wallet below)",
+    "LIVE_TRADING_ENABLED": "# Must be true to send real orders (only applies when BOT_MODE=live)",
+    "DRY_RUN": "# true = log orders but do not send | false = send orders when live is enabled",
+    "DEMO_MODE": "# true = fake balance + no real bets, but still uses live Polymarket market data",
+    "DEMO_BALANCE": "# Simulated starting balance shown in demo mode (USD)",
+    "DEMO_SESSION_PNL": "# Simulated session profit/loss shown in demo mode (USD)",
+    "PRIVATE_KEY": "# Your Polygon wallet private key (never commit — keep .env out of git)",
+    "FUNDER_ADDRESS": "# Polymarket proxy/funder address (required for signature_type 1 or 2)",
+    "DATABASE_URL": "# Postgres URL for trade history (optional for paper/demo)",
+    "POLYGON_RPC_URL": "# Polygon RPC endpoint (required for live on-chain actions)",
+    "LOG_LEVEL": "# debug | info | warn | error | silent",
+    "LOG_TIMESTAMPS": "# Show timestamps in dashboard CLI logs (true/false)",
+    "LOG_COLOR": "# Colorize dashboard CLI logs (true/false)",
+}
+
+_ENV_FILE_HEADER = (
+    "# =============================================================================\n"
+    "# Polymarket NO Farming Bot — single root .env (backend + dashboard)\n"
+    "#\n"
+    "# Edit here OR use Dashboard → Settings (wallet/mode/strategy).\n"
+    "# Restart both `python -m bot.main` and `npm run dev` after changes.\n"
+    "# ============================================================================="
+)
 
 
 def _config_path() -> Path:
@@ -239,11 +272,7 @@ class SettingsManager:
         for key, value in _ENV_DEFAULTS.items():
             existing.setdefault(key, value)
 
-        lines = [
-            "# Polymarket NO Farming Bot — single root .env (backend + dashboard)",
-            "# Wallet and mode — also editable from dashboard Settings",
-            "",
-        ]
+        lines = [_ENV_FILE_HEADER, ""]
         written: set[str] = set()
         for header, keys in _ENV_SECTIONS:
             section_keys = [key for key in keys if key in existing]
@@ -251,6 +280,9 @@ class SettingsManager:
                 continue
             lines.append(header)
             for key in section_keys:
+                comment = _ENV_COMMENTS.get(key)
+                if comment:
+                    lines.append(comment)
                 lines.append(f"{key}={existing[key]}")
                 written.add(key)
             lines.append("")
